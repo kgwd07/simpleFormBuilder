@@ -33,6 +33,14 @@ interface FormTypeSelectorProps {
 
 export const FormTypeSelector: React.FC<FormTypeSelectorProps> = ({ onSelect }) => {
   const addQuestion = useFormBuilderStore((state) => state.addQuestion);
+
+   // Create a handler that adds the question and calls onSelect
+   const handleSelectQuestionType = (type: QuestionType) => {
+    addQuestion(type);
+    if (onSelect) {
+      onSelect(); // Call the callback to close the modal
+    }
+  };
   
   // Group question types by category
   const questionTypesByCategory = questionTypes.reduce((acc, question) => {
@@ -60,10 +68,7 @@ export const FormTypeSelector: React.FC<FormTypeSelectorProps> = ({ onSelect }) 
               {questions.map((question) => (
                 <button
                   key={question.type}
-                  onClick={() => {
-                    addQuestion(question.type)
-                    onSelect();
-                  }}
+                  onClick={() => handleSelectQuestionType(question.type)}
                   className="w-full flex items-center p-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors text-left mb-2 cursor-pointer"
                 >
                   <div className="w-6 h-6 flex items-center justify-center mr-2">

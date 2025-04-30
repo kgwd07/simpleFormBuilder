@@ -1,274 +1,11 @@
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
-// import { useFormsStore } from "@/store/formsStore";
-// import {
-//   Form,
-//   Question,
-//   QuestionType,
-//   FormResponse,
-//   Answer,
-// } from "@/models/forms";
-// import { Button } from "@/components/ui/Button";
-// import { Input } from "@/components/ui/Input";
-// import { Select } from "@/components/ui/Select";
-// import {
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   CardFooter,
-// } from "@/components/ui/Card";
-// import { nanoid } from "nanoid";
-
-// interface RespondFormPageProps {
-//   params: {
-//     id: string;
-//   };
-// }
-
-// export default function RespondFormPage({ params }: RespondFormPageProps) {
-//   const router = useRouter();
-//   //@ts-ignore
-//   const { id } = React.use(params);
-
-//   const forms = useFormsStore((state) => state.forms);
-//   const addResponse = useFormsStore((state) => state.addResponse);
-
-//   const [form, setForm] = useState<Form | null>(null);
-//   const [answers, setAnswers] = useState<Record<string, any>>({});
-//   const [errors, setErrors] = useState<Record<string, string>>({});
-//   const [isSubmitted, setIsSubmitted] = useState(false);
-
-//   useEffect(() => {
-//     const foundForm = forms.find((form) => form.id === id);
-//     if (foundForm) {
-//       setForm(foundForm);
-//       // Initialize answers object
-//       const initialAnswers: Record<string, any> = {};
-//       foundForm.questions.forEach((question) => {
-//         initialAnswers[question.id] = null;
-//       });
-//       setAnswers(initialAnswers);
-//     } else {
-//       router.push("/dashboard");
-//     }
-//   }, [id, forms, router]);
-
-//   const handleAnswerChange = (questionId: string, value: any) => {
-//     setAnswers((prev) => ({
-//       ...prev,
-//       [questionId]: value,
-//     }));
-
-//     // Clear error if exists
-//     if (errors[questionId]) {
-//       setErrors((prev) => {
-//         const newErrors = { ...prev };
-//         delete newErrors[questionId];
-//         return newErrors;
-//       });
-//     }
-//   };
-
-//   // const handleSubmit = () => {
-//   //   if (!form) return;
-
-//   //   // Validate required questions
-//   //   const newErrors: Record<string, string> = {};
-//   //   form.questions.forEach((question) => {
-//   //     if (question.isRequired && (answers[question.id] === null || answers[question.id] === '')) {
-//   //       newErrors[question.id] = 'This question is required';
-//   //     }
-//   //   });
-
-//   //   if (Object.keys(newErrors).length > 0) {
-//   //     setErrors(newErrors);
-//   //     return;
-//   //   }
-
-//   //   // Format answers for submission
-//   //   const formattedAnswers: Answer[] = Object.entries(answers).map(([questionId, value]) => ({
-//   //     questionId,
-//   //     value,
-//   //   }));
-
-//   //   // Create response
-//   //   const response: FormResponse = {
-//   //     id: nanoid(),
-//   //     formId: form.id,
-//   //     createdAt: new Date(),
-//   //     answers: formattedAnswers,
-//   //   };
-
-//   //   // Submit response
-//   //   addResponse(response);
-//   //   setIsSubmitted(true);
-//   // };
-
-//   const handleSubmit = () => {
-//     if (!form) return;
-
-//     // Validate required questions
-//     const newErrors: Record<string, string> = {};
-//     form.questions.forEach((question) => {
-//       if (
-//         question.isRequired &&
-//         (answers[question.id] === null || answers[question.id] === "")
-//       ) {
-//         newErrors[question.id] = "This question is required";
-//       }
-//     });
-
-//     if (Object.keys(newErrors).length > 0) {
-//       setErrors(newErrors);
-//       return;
-//     }
-
-//     // Format answers for submission
-//     const formattedAnswers: Answer[] = Object.entries(answers).map(
-//       ([questionId, value]) => ({
-//         questionId,
-//         value,
-//       })
-//     );
-
-//     // Create response
-//     const response: FormResponse = {
-//       id: nanoid(),
-//       formId: form.id,
-//       createdAt: new Date(),
-//       answers: formattedAnswers,
-//     };
-
-//     // Save the response
-//     addResponse(response);
-//     setIsSubmitted(true);
-//   };
-
-//   if (!form) {
-//     return (
-//       <div className="container mx-auto p-6 text-center">
-//         <p>Loading form...</p>
-//       </div>
-//     );
-//   }
-
-//   if (isSubmitted) {
-//     return (
-//       <div className="container mx-auto p-6">
-//         <Card className="max-w-2xl mx-auto">
-//           <CardContent className="p-6 text-center">
-//             <h1 className="text-gray-600 text-2xl font-bold mb-4">Thank You!</h1>
-//             <p className="text-gray-600 mb-6">
-//               Your response has been submitted successfully.
-//             </p>
-//             <Button onClick={() => router.push("/dashboard")}>
-//               Back to Dashboard
-//             </Button>
-//           </CardContent>
-//         </Card>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="container mx-auto p-6">
-//       <Card className="max-w-2xl mx-auto">
-//         <CardHeader className="p-6 border-b">
-//           <div className="flex justify-between items-center">
-//             <h1 className="text-gray-600 text-2xl font-bold">{form.title}</h1>
-//             <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-//               Response Will Be Saved
-//             </div>
-//           </div>
-//           {form.description && (
-//             <p className="text-gray-600 mt-2">{form.description}</p>
-//           )}
-//         </CardHeader>
-
-//         <CardContent className="p-6">
-//           {form.questions.map((question, index) => (
-//             <div key={question.id} className="mb-6">
-//               <div className="flex items-start mb-2">
-//                 <span className=" text-gray-600 mr-2 font-medium">{index + 1}.</span>
-//                 <div>
-//                   <div className="font-medium text-gray-600">
-//                     {question.title}
-//                     {question.isRequired && (
-//                       <span className="text-red-500 ml-1">*</span>
-//                     )}
-//                   </div>
-//                   {question.description && (
-//                     <div className="text-sm text-gray-500 mb-1">
-//                       {question.description}
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-
-//               {question.type === QuestionType.ShortText && (
-//                 <Input
-//                   id={`question-${question.id}`}
-//                   value={answers[question.id] || ""}
-//                   onChange={(e) =>
-//                     handleAnswerChange(question.id, e.target.value)
-//                   }
-//                   placeholder={
-//                     (question as any).placeholder || "Type your answer here"
-//                   }
-//                   error={errors[question.id]}
-//                 />
-//               )}
-
-//               {question.type === QuestionType.Dropdown && (
-//                 <Select
-//                   id={`question-${question.id}`}
-//                   value={answers[question.id] || ""}
-//                   onChange={(e) =>
-//                     handleAnswerChange(question.id, e.target.value)
-//                   }
-//                   options={(question as any).options.map((opt: any) => ({
-//                     value: opt.value,
-//                     label: opt.value,
-//                   }))}
-//                   placeholder="Select an option"
-//                   error={errors[question.id]}
-//                   // className="text-gray-600"
-//                 />
-//               )}
-//             </div>
-//           ))}
-//         </CardContent>
-
-//         <CardFooter className="p-6 border-t">
-//           <div className="flex justify-end w-full">
-//             <Button onClick={handleSubmit}>Submit</Button>
-//           </div>
-//         </CardFooter>
-//       </Card>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { use } from "react"; // Import the use function
 import { useRouter } from "next/navigation";
+import { useFormBuilderStore } from "@/store/formBuilderStore";
 import { useFormsStore } from "@/store/formsStore";
-import {
-  Form,
-  Question,
-  QuestionType,
-  FormResponse,
-  Answer,
-} from "@/models/forms";
+import { Question, QuestionType, FormResponse, Answer } from "@/models/forms";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -288,48 +25,113 @@ interface RespondFormPageProps {
 
 export default function RespondFormPage({ params }: RespondFormPageProps) {
   const router = useRouter();
+  // Use React.use() to unwrap the params Promise
   //@ts-ignore
-  const { id } = React.use(params);
+  const unwrappedParams = use(params);
+  //@ts-ignore
+  const id = unwrappedParams.id;
 
-  const forms = useFormsStore((state) => state.forms);
+  // Form data from FormBuilderStore (API-based)
+  const loadFormById = useFormBuilderStore((state) => state.loadFormById);
+  const currentForm = useFormBuilderStore((state) => state.currentForm);
+  const isFormLoading = useFormBuilderStore((state) => state.isLoading);
+  const formError = useFormBuilderStore((state) => state.error);
+
+  // Response handling from FormsStore (API-based)
   const addResponse = useFormsStore((state) => state.addResponse);
+  const isResponseLoading = useFormsStore((state) => state.isLoading);
+  const responseError = useFormsStore((state) => state.error);
 
-  const [form, setForm] = useState<Form | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
+    null
+  );
   const [currentProgress, setCurrentProgress] = useState(0);
 
-  useEffect(() => {
-    const foundForm = forms.find((form) => form.id === id);
-    if (foundForm) {
-      setForm(foundForm);
-      // Initialize answers object
-      const initialAnswers: Record<string, any> = {};
-      foundForm.questions.forEach((question) => {
-        initialAnswers[question.id] = null;
-      });
-      setAnswers(initialAnswers);
-      
-      // Set first question as selected by default
-      if (foundForm.questions.length > 0) {
-        setSelectedQuestionId(foundForm.questions[0].id);
-      }
-    } else {
-      router.push("/dashboard");
-    }
-  }, [id, forms, router]);
+  const validateCurrentQuestion = (questionId: string): boolean => {
+    // Find the question
+    const question = currentForm.questions.find((q) => q.id === questionId);
 
+    if (!question) return true; // If question not found, consider it valid
+
+    // Clear previous error for this question
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[questionId];
+      return newErrors;
+    });
+
+    // Check if the question is required and not answered
+    if (
+      question.isRequired &&
+      (answers[questionId] === null || answers[questionId] === "")
+    ) {
+      // Set error for this question
+      setErrors((prev) => ({
+        ...prev,
+        [questionId]: "This question is required",
+      }));
+      return false;
+    }
+
+    return true; // Question is valid
+  };
+
+  // Load form data from API when component mounts - fixed to avoid infinite calls
   useEffect(() => {
-    if (form) {
+    if (!id) {
+      router.push("/dashboard");
+      return;
+    }
+
+    const fetchForm = async () => {
+      try {
+        await loadFormById(id);
+      } catch (error) {
+        console.error("Error fetching form:", error);
+        router.push("/dashboard");
+      }
+    };
+
+    fetchForm();
+  }, [id, loadFormById, router]); // Removed currentForm.questions from dependencies
+
+  // Initialize answers when form is loaded - separate effect
+  useEffect(() => {
+    if (currentForm.questions && currentForm.questions.length > 0) {
+      // Initialize answers object only if not already initialized
+      const allQuestionsAnswered = currentForm.questions.every(
+        (question) => question.id in answers
+      );
+
+      if (!allQuestionsAnswered) {
+        const initialAnswers: Record<string, any> = {};
+        currentForm.questions.forEach((question) => {
+          initialAnswers[question.id] = null;
+        });
+        setAnswers(initialAnswers);
+
+        // Set first question as selected by default if not already set
+        if (!selectedQuestionId) {
+          setSelectedQuestionId(currentForm.questions[0].id);
+        }
+      }
+    }
+  }, [currentForm.questions, answers, selectedQuestionId]);
+
+  // Calculate progress whenever answers change
+  useEffect(() => {
+    if (currentForm.questions && currentForm.questions.length > 0) {
       // Calculate progress
-      const answeredQuestions = Object.values(answers).filter(value => 
-        value !== null && value !== "").length;
-      const totalQuestions = form.questions.length;
+      const answeredQuestions = Object.values(answers).filter(
+        (value) => value !== null && value !== ""
+      ).length;
+      const totalQuestions = currentForm.questions.length;
       setCurrentProgress((answeredQuestions / totalQuestions) * 100);
     }
-  }, [answers, form]);
+  }, [answers, currentForm.questions]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers((prev) => ({
@@ -347,12 +149,12 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!form) return;
+  const handleSubmit = async () => {
+    if (!currentForm || !currentForm.questions) return;
 
     // Validate required questions
     const newErrors: Record<string, string> = {};
-    form.questions.forEach((question) => {
+    currentForm.questions.forEach((question) => {
       if (
         question.isRequired &&
         (answers[question.id] === null || answers[question.id] === "")
@@ -363,38 +165,47 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      
+
       // Focus the first question with an error
       const firstErrorQuestionId = Object.keys(newErrors)[0];
       setSelectedQuestionId(firstErrorQuestionId);
-      
+
       return;
     }
 
     // Format answers for submission
-    const formattedAnswers: Answer[] = Object.entries(answers).map(
-      ([questionId, value]) => ({
+    const formattedAnswers: Answer[] = Object.entries(answers)
+      .filter(([_, value]) => value !== null && value !== "")
+      .map(([questionId, value]) => ({
         questionId,
         value,
-      })
-    );
+      }));
 
-    // Create response
+    // Create response object
     const response: FormResponse = {
-      id: nanoid(),
-      formId: form.id,
+      id: `temp_${nanoid()}`, // This will be replaced by MongoDB ObjectId
+      formId: currentForm.id,
       createdAt: new Date(),
       answers: formattedAnswers,
     };
 
-    // Save the response
-    addResponse(response);
-    setIsSubmitted(true);
+    // Submit response to the API
+    try {
+      const result = await addResponse(response);
+      if (result) {
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      console.error("Error submitting form response:", error);
+    }
   };
 
   const getSelectedQuestion = () => {
-    if (!form || !selectedQuestionId) return null;
-    return form.questions.find(q => q.id === selectedQuestionId) || null;
+    if (!currentForm || !currentForm.questions || !selectedQuestionId)
+      return null;
+    return (
+      currentForm.questions.find((q) => q.id === selectedQuestionId) || null
+    );
   };
 
   const renderQuestionInput = (question: Question) => {
@@ -405,7 +216,9 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
             id={`question-${question.id}`}
             value={answers[question.id] || ""}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            placeholder={(question as any).placeholder || "Type your answer here"}
+            placeholder={
+              (question as any).placeholder || "Type your answer here"
+            }
             error={errors[question.id]}
           />
         );
@@ -415,7 +228,7 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
             id={`question-${question.id}`}
             value={answers[question.id] || ""}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            options={(question as any).options.map((opt: any) => ({
+            options={((question as any).options || []).map((opt: any) => ({
               value: opt.value,
               label: opt.value,
             }))}
@@ -428,22 +241,68 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
     }
   };
 
-  if (!form) {
+  // Show loading state
+  if (isFormLoading || isResponseLoading) {
     return (
       <div className="container mx-auto p-6 text-center">
-        <p>Loading form...</p>
+        <p className="text-gray-600">Loading form...</p>
       </div>
     );
   }
 
+  // Show error state
+  if (formError || responseError) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="p-6 text-center">
+            <h1 className="text-gray-600 text-2xl font-bold mb-4">Error</h1>
+            <p className="text-red-500 mb-6">{formError || responseError}</p>
+            <Button onClick={() => router.push("/dashboard")}>
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show submission confirmation
   if (isSubmitted) {
     return (
       <div className="container mx-auto p-6">
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-6 text-center">
-            <h1 className="text-gray-600 text-2xl font-bold mb-4">Thank You!</h1>
+            <h1 className="text-gray-600 text-2xl font-bold mb-4">
+              Thank You!
+            </h1>
             <p className="text-gray-600 mb-6">
               Your response has been submitted successfully.
+            </p>
+            <Button onClick={() => router.push("/dashboard")}>
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Check if form is available
+  if (
+    !currentForm ||
+    !currentForm.questions ||
+    currentForm.questions.length === 0
+  ) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="p-6 text-center">
+            <h1 className="text-gray-600 text-2xl font-bold mb-4">
+              Form Not Found
+            </h1>
+            <p className="text-gray-600 mb-6">
+              The form you're looking for is not available.
             </p>
             <Button onClick={() => router.push("/dashboard")}>
               Back to Dashboard
@@ -461,31 +320,39 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
       <Card className="mb-6">
         <CardHeader className="p-6 border-b">
           <div className="flex justify-between items-center">
-            <h1 className="text-gray-600 text-2xl font-bold">{form.title}</h1>
+            <h1 className="text-gray-600 text-2xl font-bold">
+              {currentForm.title}
+            </h1>
             <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
               Response Will Be Saved
             </div>
           </div>
-          {form.description && (
-            <p className="text-gray-600 mt-2">{form.description}</p>
+          {currentForm.description && (
+            <p className="text-gray-600 mt-2">{currentForm.description}</p>
           )}
         </CardHeader>
-        
+
         {/* Progress bar */}
         <div className="px-6 py-2 bg-gray-50">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+            <div
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${currentProgress}%` }}
             ></div>
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{Object.values(answers).filter(v => v !== null && v !== "").length} of {form.questions.length} answered</span>
+            <span>
+              {
+                Object.values(answers).filter((v) => v !== null && v !== "")
+                  .length
+              }{" "}
+              of {currentForm.questions.length} answered
+            </span>
             <span>{Math.round(currentProgress)}% complete</span>
           </div>
         </div>
       </Card>
-      
+
       <div className="grid grid-cols-12 gap-6">
         {/* Column 1: Question Navigator */}
         <div className="col-span-12 lg:col-span-3">
@@ -495,29 +362,45 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
             </CardHeader>
             <CardContent className="p-0">
               <div className="max-h-[60vh] overflow-y-auto">
-                {form.questions.map((question, index) => {
-                  const isAnswered = answers[question.id] !== null && answers[question.id] !== "";
+                {currentForm.questions.map((question, index) => {
+                  const isAnswered =
+                    answers[question.id] !== null &&
+                    answers[question.id] !== "";
                   const hasError = errors[question.id] !== undefined;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={question.id}
                       onClick={() => setSelectedQuestionId(question.id)}
                       className={`
                         p-4 border-b cursor-pointer flex items-center
-                        ${selectedQuestionId === question.id ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                        ${hasError ? 'bg-red-50 hover:bg-red-50' : ''}
+                        ${
+                          selectedQuestionId === question.id
+                            ? "bg-blue-50"
+                            : "hover:bg-gray-50"
+                        }
+                        ${hasError ? "bg-red-50 hover:bg-red-50" : ""}
                       `}
                     >
-                      <div className={`
+                      <div
+                        className={`
                         w-6 h-6 rounded-full flex items-center justify-center mr-3 text-sm
-                        ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'}
-                        ${hasError ? 'bg-red-100 text-red-600' : ''}
-                      `}>
-                        {isAnswered ? '✓' : index + 1}
+                        ${
+                          isAnswered
+                            ? "bg-green-100 text-green-600"
+                            : "bg-gray-200 text-gray-600"
+                        }
+                        ${hasError ? "bg-red-100 text-red-600" : ""}
+                      `}
+                      >
+                        {isAnswered ? "✓" : index + 1}
                       </div>
                       <div className="flex-grow overflow-hidden">
-                        <div className={`font-medium truncate ${hasError ? 'text-red-600' : 'text-gray-600'}`}>
+                        <div
+                          className={`font-medium truncate ${
+                            hasError ? "text-red-600" : "text-gray-600"
+                          }`}
+                        >
                           {question.title}
                           {question.isRequired && (
                             <span className="text-red-500 ml-1">*</span>
@@ -535,28 +418,33 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
               </div>
             </CardContent>
             <CardFooter className="p-4 border-t">
-              <Button 
+              <Button
                 onClick={handleSubmit}
                 className="w-full"
+                isDisabled={isResponseLoading}
               >
-                Submit Form
+                {isResponseLoading ? "Submitting..." : "Submit Form"}
               </Button>
             </CardFooter>
           </Card>
         </div>
-        
+
         {/* Column 2: Current Question */}
         <div className="col-span-12 lg:col-span-9">
           <Card className="sticky top-6">
             <CardHeader className="p-4 border-b">
-              <h2 className="text-gray-600 text-lg font-medium">Answer Questions</h2>
+              <h2 className="text-gray-600 text-lg font-medium">
+                Answer Questions
+              </h2>
             </CardHeader>
             <CardContent className="p-6">
               {selectedQuestion ? (
                 <div className="space-y-4">
                   <div className="flex items-start mb-4">
                     <div className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                      {form.questions.findIndex(q => q.id === selectedQuestion.id) + 1}
+                      {currentForm.questions.findIndex(
+                        (q) => q.id === selectedQuestion.id
+                      ) + 1}
                     </div>
                     <div>
                       <div className="font-medium text-gray-700 text-lg">
@@ -572,42 +460,76 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
                       )}
                     </div>
                   </div>
-                  
+
                   {renderQuestionInput(selectedQuestion)}
-                  
-                  {/* {errors[selectedQuestion.id] && (
-                    <div className="text-red-500 text-sm mt-2">
-                      {errors[selectedQuestion.id]}
-                    </div>
-                  )} */}
-                  
+
                   <div className="flex justify-between mt-8">
                     <Button
                       variant="outline"
                       onClick={() => {
-                        const currentIndex = form.questions.findIndex(q => q.id === selectedQuestion.id);
+                        const currentIndex = currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        );
                         if (currentIndex > 0) {
-                          setSelectedQuestionId(form.questions[currentIndex - 1].id);
+                          setSelectedQuestionId(
+                            currentForm.questions[currentIndex - 1].id
+                          );
                         }
                       }}
-                      isDisabled={form.questions.findIndex(q => q.id === selectedQuestion.id) === 0}
+                      isDisabled={
+                        currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        ) === 0 || isResponseLoading
+                      }
                     >
                       Previous
                     </Button>
-                    
-                    <Button
+
+                    {/* <Button
                       onClick={() => {
-                        const currentIndex = form.questions.findIndex(q => q.id === selectedQuestion.id);
-                        if (currentIndex < form.questions.length - 1) {
-                          setSelectedQuestionId(form.questions[currentIndex + 1].id);
+                        const currentIndex = currentForm.questions.findIndex(q => q.id === selectedQuestion.id);
+                        if (currentIndex < currentForm.questions.length - 1) {
+                          setSelectedQuestionId(currentForm.questions[currentIndex + 1].id);
                         } else {
                           handleSubmit();
                         }
                       }}
+                      isDisabled={isResponseLoading}
                     >
-                      {form.questions.findIndex(q => q.id === selectedQuestion.id) === form.questions.length - 1 
-                        ? 'Submit' 
-                        : 'Next'}
+                      {isResponseLoading ? 'Processing...' : 
+                        (currentForm.questions.findIndex(q => q.id === selectedQuestion.id) === currentForm.questions.length - 1 
+                          ? 'Submit' 
+                          : 'Next')}
+                    </Button> */}
+
+                    <Button
+                      onClick={() => {
+                        const currentIndex = currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        );
+
+                        // First validate the current question
+                        if (validateCurrentQuestion(selectedQuestion.id)) {
+                          // Only proceed if validation passes
+                          if (currentIndex < currentForm.questions.length - 1) {
+                            setSelectedQuestionId(
+                              currentForm.questions[currentIndex + 1].id
+                            );
+                          } else {
+                            handleSubmit();
+                          }
+                        }
+                      }}
+                      isDisabled={isResponseLoading}
+                    >
+                      {isResponseLoading
+                        ? "Processing..."
+                        : currentForm.questions.findIndex(
+                            (q) => q.id === selectedQuestion.id
+                          ) ===
+                          currentForm.questions.length - 1
+                        ? "Submit"
+                        : "Next"}
                     </Button>
                   </div>
                 </div>
@@ -619,101 +541,6 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
             </CardContent>
           </Card>
         </div>
-        
-        {/* Column 3: Form Summary */}
-        {/* <div className="col-span-12 lg:col-span-3">
-          <Card className="sticky top-6">
-            <CardHeader className="p-4 border-b">
-              <h2 className="text-gray-600 text-lg font-medium">Form Summary</h2>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm text-gray-500 mb-1">Your Progress</h3>
-                  <div className="flex items-center">
-                    <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${currentProgress}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm text-gray-600 whitespace-nowrap">
-                      {Math.round(currentProgress)}%
-                    </span>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm text-gray-500 mb-2">Questions Overview</h3>
-                  <div className="space-y-1 max-h-[40vh] overflow-y-auto">
-                    {form.questions.map((question, index) => {
-                      const isAnswered = answers[question.id] !== null && answers[question.id] !== "";
-                      const hasError = errors[question.id] !== undefined;
-                      
-                      return (
-                        <div 
-                          key={question.id}
-                          onClick={() => setSelectedQuestionId(question.id)}
-                          className={`
-                            p-2 rounded cursor-pointer flex items-center text-sm
-                            ${selectedQuestionId === question.id ? 'bg-blue-50' : ''}
-                            ${hasError ? 'bg-red-50' : ''}
-                          `}
-                        >
-                          <div className={`
-                            w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs
-                            ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'}
-                            ${hasError ? 'bg-red-100 text-red-600' : ''}
-                          `}>
-                            {isAnswered ? '✓' : index + 1}
-                          </div>
-                          <div className="truncate flex-grow">
-                            {question.title}
-                          </div>
-                          {isAnswered && (
-                            <div className="ml-2 text-xs text-gray-500 max-w-[100px] truncate">
-                              {answers[question.id]}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                {Object.keys(errors).length > 0 && (
-                  <div className="mt-4 bg-red-50 p-3 rounded-md">
-                    <h3 className="text-sm text-red-600 font-medium mb-1">
-                      There are {Object.keys(errors).length} errors to fix:
-                    </h3>
-                    <ul className="list-disc pl-5 text-xs text-red-600">
-                      {Object.keys(errors).map(questionId => {
-                        const question = form.questions.find(q => q.id === questionId);
-                        return (
-                          <li key={questionId} className="cursor-pointer" onClick={() => setSelectedQuestionId(questionId)}>
-                            {question?.title}: {errors[questionId]}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter className="p-4 border-t">
-              <Button 
-                onClick={handleSubmit}
-                className="w-full"
-                //@ts-ignore
-                variant={Object.keys(errors).length > 0 ? "outline" : "default"}
-              >
-                {Object.keys(errors).length > 0 
-                  ? `Fix ${Object.keys(errors).length} errors before submitting` 
-                  : 'Submit Form'}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div> */}
       </div>
     </div>
   );

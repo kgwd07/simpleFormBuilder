@@ -1,0 +1,59 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Form {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  status        String     // "DRAFT" or "PUBLISHED"
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  questions     Question[]
+  responses     Response[]
+  responseCount Int        @default(0)
+}
+
+model Question {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  formId      String   @db.ObjectId
+  type        String   // "SHORT_TEXT" or "DROPDOWN"
+  title       String
+  description String?
+  isRequired  Boolean  @default(false)
+  order       Int
+  placeholder String?
+  options     Option[] // For dropdown questions
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+}
+
+model Option {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  questionId String   @db.ObjectId
+  value      String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Response {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  formId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  answers   Answer[]
+}
+
+model Answer {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  responseId  String   @db.ObjectId
+  questionId  String   @db.ObjectId
+  value       String   // Store as JSON string for complex types
+  response    Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id],onDelete: Cascade)
+}

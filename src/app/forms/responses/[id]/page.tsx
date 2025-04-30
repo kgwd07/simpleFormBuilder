@@ -1,13 +1,11 @@
-// src/app/forms/responses/[id]/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormBuilderStore } from '@/store/formBuilderStore';
 import { useFormsStore } from '@/store/formsStore';
-import { Form, Question, FormResponse, Answer } from '@/models/forms';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 
 interface ResponsesPageProps {
   params: {
@@ -17,36 +15,60 @@ interface ResponsesPageProps {
 
 export default function ResponsesPage({ params }: ResponsesPageProps) {
   // Use React.use() to unwrap the params Promise
-  //@ts-ignore
+  // @ts-ignore
   const { id } = React.use(params);
   const router = useRouter();
   
-  const forms = useFormsStore((state) => state.forms);
-  const responses = useFormsStore((state) => state.responses);
+  // Get form data
+  const loadFormById = useFormBuilderStore((state) => state.loadFormById);
+  const currentForm = useFormBuilderStore((state) => state.currentForm);
+  const isFormLoading = useFormBuilderStore((state) => state.isLoading);
+  const formError = useFormBuilderStore((state) => state.error);
   
-  const [form, setForm] = useState<Form | null>(null);
-  const [formResponses, setFormResponses] = useState<FormResponse[]>([]);
+  // Get responses data
+  const { responses, isLoading: isResponsesLoading, error: responsesError, fetchResponses } = useFormsStore();
+  const formResponses = responses[id] || [];
   
+  // Load form and responses when component mounts
   useEffect(() => {
-    const foundForm = forms.find(f => f.id === id);
-    if (foundForm) {
-      setForm(foundForm);
-      setFormResponses(responses[id] || []);
-    } else {
-      router.push('/dashboard');
-    }
-  }, [id, forms, responses, router]);
+    const loadData = async () => {
+      const success = await loadFormById(id);
+      if (success) {
+        fetchResponses(id);
+      } else {
+        router.push('/dashboard');
+      }
+    };
+    
+    loadData();
+  }, [id, loadFormById, fetchResponses, router]);
   
   // Helper function to find answer for a specific question
-  const getAnswerForQuestion = (response: FormResponse, questionId: string) => {
+  const getAnswerForQuestion = (responseId: string, questionId: string) => {
+    const response = formResponses.find(r => r.id === responseId);
+    if (!response) return '-';
+    
     const answer = response.answers.find(a => a.questionId === questionId);
     return answer ? answer.value : '-';
   };
   
-  if (!form) {
+  // Show loading state
+  if (isFormLoading || isResponsesLoading) {
     return (
       <div className="container mx-auto p-6 text-center">
-        <p>Loading form responses...</p>
+        <p className="text-gray-600">Loading data...</p>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (formError || responsesError) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-red-500">Error: {formError || responsesError}</p>
+        <Button className="mt-4 cursor-pointer" onClick={() => router.push('/dashboard')}>
+          Back to Dashboard
+        </Button>
       </div>
     );
   }
@@ -55,7 +77,7 @@ export default function ResponsesPage({ params }: ResponsesPageProps) {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-600">{form.title} - Responses</h1>
+          <h1 className="text-2xl font-bold text-gray-600">{currentForm.title} - Responses</h1>
           <p className="text-gray-500">
             {formResponses.length} {formResponses.length === 1 ? 'response' : 'responses'} collected
           </p>
@@ -69,7 +91,7 @@ export default function ResponsesPage({ params }: ResponsesPageProps) {
           </Button> */}
           <Button
             variant="outline"
-            className="cursor-pointer"
+            className='cursor-pointer'
             onClick={() => router.push('/dashboard')}
           >
             Back to Dashboard
@@ -86,12 +108,12 @@ export default function ResponsesPage({ params }: ResponsesPageProps) {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-200">
+                <thead className="bg-gray-300 ">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Submission Date
                     </th>
-                    {form.questions.map((question) => (
+                    {currentForm.questions.map((question) => (
                       <th 
                         key={question.id} 
                         scope="col" 
@@ -108,14 +130,14 @@ export default function ResponsesPage({ params }: ResponsesPageProps) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(response.createdAt).toLocaleString()}
                       </td>
-                      {form.questions.map((question) => (
+                      {currentForm.questions.map((question) => (
                         <td 
                           key={question.id} 
                           className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                         >
-                          {typeof getAnswerForQuestion(response, question.id) === 'object' 
-                            ? JSON.stringify(getAnswerForQuestion(response, question.id))
-                            : String(getAnswerForQuestion(response, question.id))}
+                          {typeof getAnswerForQuestion(response.id, question.id) === 'object' 
+                            ? JSON.stringify(getAnswerForQuestion(response.id, question.id))
+                            : String(getAnswerForQuestion(response.id, question.id))}
                         </td>
                       ))}
                     </tr>
@@ -126,20 +148,6 @@ export default function ResponsesPage({ params }: ResponsesPageProps) {
           )}
         </CardContent>
       </Card>
-      
-      {/* {formResponses.length > 0 && (
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Here you could add export functionality (CSV, etc.)
-              alert('Export functionality could be added here');
-            }}
-          >
-            Export Data
-          </Button>
-        </div>
-      )} */}
     </div>
   );
 }

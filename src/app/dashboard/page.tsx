@@ -11,24 +11,66 @@ import { Badge } from "@/components/ui/Badge";
 
 export default function Dashboard() {
   const router = useRouter();
-  const forms = useFormsStore((state) => state.forms);
+  // const forms = useFormsStore((state) => state.forms);
+  const { 
+    forms, 
+    isLoading, 
+    error, 
+    fetchForms, 
+    deleteForm 
+  } = useFormsStore();
   const responses = useFormsStore((state) => state.responses);
-  const deleteForm = useFormsStore((state) => state.deleteForm);
   const clearResponses = useFormsStore((state) => state.clearResponses);
   const [formToDelete, setFormToDelete] = useState<string | null>(null);
+
+
+  // Fetch forms when component mounts
+  useEffect(() => {
+    fetchForms();
+  }, [fetchForms]);
 
   const handleDeleteForm = (formId: string) => {
     // Show confirmation dialog
     setFormToDelete(formId);
   };
 
-  const confirmDelete = () => {
+  // const confirmDelete = () => {
+  //   if (formToDelete) {
+  //     deleteForm(formToDelete);
+  //     clearResponses(formToDelete);
+  //     setFormToDelete(null);
+  //   }
+  // };
+
+  const confirmDelete = async () => {
     if (formToDelete) {
-      deleteForm(formToDelete);
-      clearResponses(formToDelete);
-      setFormToDelete(null);
+      const success = await deleteForm(formToDelete);
+      if (success) {
+        setFormToDelete(null);
+      }
     }
   };
+
+   // Show loading state
+   if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-gray-600">Loading forms...</p>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-red-500">Error: {error}</p>
+        <Button className="mt-4" onClick={() => fetchForms()}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">

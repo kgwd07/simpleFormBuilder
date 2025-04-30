@@ -12,6 +12,8 @@ import {
 
 interface FormBuilderState {
   currentForm: Form;
+  isLoading: boolean;
+  error: string | null;
   
   // Actions
   setFormTitle: (title: string) => void;
@@ -22,7 +24,7 @@ interface FormBuilderState {
   addQuestion: (type: QuestionType) => void;
   updateQuestion: (questionId: string, questionData: Partial<Question>) => void;
   removeQuestion: (questionId: string) => void;
-  reorderQuestions: (sourceIndex: number, destinationIndex: number) => void; // New function
+  reorderQuestions: (sourceIndex: number, destinationIndex: number) => void;
   
   // Options management for dropdown
   addOption: (questionId: string, value: string) => void;
@@ -32,11 +34,12 @@ interface FormBuilderState {
   // Form management
   resetForm: () => void;
   loadForm: (form: Form) => void;
+  loadFormById: (id: string) => Promise<boolean>;
 }
 
 // Create initial empty form
 const createEmptyForm = (): Form => ({
-  id: nanoid(),
+  id: `temp_${nanoid()}`, // Will be replaced by MongoDB _id
   title: 'New Form',
   description: '',
   status: FormStatus.Draft,
@@ -46,8 +49,10 @@ const createEmptyForm = (): Form => ({
   responseCount: 0,
 });
 
-export const useFormBuilderStore = create<FormBuilderState>((set) => ({
+export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
   currentForm: createEmptyForm(),
+  isLoading: false,
+  error: null,
   
   setFormTitle: (title) => 
     set((state) => ({
@@ -82,7 +87,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
       
       // Create base question
       const baseQuestion: BaseQuestion = {
-        id: nanoid(),
+        id: `temp_question_${nanoid()}`, // Will be replaced by MongoDB _id
         formId: state.currentForm.id,
         type,
         title: `Q${newOrder + 1}`,
@@ -99,7 +104,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
           newQuestion = {
             ...baseQuestion,
             type: QuestionType.Dropdown,
-            options: [{ id: nanoid(), value: 'Option 1' }],
+            options: [{ id: `temp_option_${nanoid()}`, value: 'Option 1' }],
             allowCustomInput: false,
           } as DropdownQuestion;
           break;
@@ -129,16 +134,20 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
       };
     }),
   
-  updateQuestion: (questionId, questionData) => 
-    set((state:any) => ({
-      currentForm: {
-        ...state.currentForm,
-        questions: state.currentForm.questions.map((q:any) => 
-          q.id === questionId ? { ...q, ...questionData } : q
-        ),
-        updatedAt: new Date(),
-      }
-    })),
+    updateQuestion: (questionId, questionData) => 
+      set((state) => ({
+        currentForm: {
+          ...state.currentForm,
+          questions: state.currentForm.questions.map((q) => {
+            if (q.id === questionId) {
+              // Use type assertion to tell TypeScript this is still a valid Question
+              return { ...q, ...questionData } as Question;
+            }
+            return q;
+          }),
+          updatedAt: new Date(),
+        }
+      })),
     
   removeQuestion: (questionId) => 
     set((state) => {
@@ -163,7 +172,6 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
       };
     }),
     
-  // Add reorderQuestions function
   reorderQuestions: (sourceIndex, destinationIndex) => 
     set((state) => {
       // Create a copy of questions array
@@ -194,7 +202,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
   addOption: (questionId, value) => 
     set((state) => {
       const newOption: Option = {
-        id: nanoid(),
+        id: `temp_option_${nanoid()}`, // Will be replaced by MongoDB _id
         value
       };
       
@@ -266,11 +274,50 @@ export const useFormBuilderStore = create<FormBuilderState>((set) => ({
     
   resetForm: () => 
     set(() => ({
-      currentForm: createEmptyForm()
+      currentForm: createEmptyForm(),
+      isLoading: false,
+      error: null
     })),
     
   loadForm: (form) => 
     set(() => ({
-      currentForm: form
+      currentForm: form,
+      isLoading: false,
+      error: null
     })),
+    
+  loadFormById: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`/api/forms/${id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load form');
+      }
+      
+      const form = await response.json();
+      
+      // Process dates
+      const processedForm = {
+        ...form,
+        createdAt: new Date(form.createdAt),
+        updatedAt: new Date(form.updatedAt),
+      };
+      
+      set({ 
+        currentForm: processedForm, 
+        isLoading: false 
+      });
+      
+      return true;
+    } catch (error) {
+      set({ 
+        error: (error as Error).message, 
+        isLoading: false 
+      });
+      console.error('Error loading form:', error);
+      return false;
+    }
+  },
 }));
+

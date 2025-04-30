@@ -24,3 +24,31 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.form-title-input {
+  color: #333333;
+  font-weight: 500;
+}
+
+.validation-error {
+  text-decoration: red wavy underline;
+  text-decoration-thickness: 2px; /* Increase thickness for visibility */
+}
+
+textarea {
+  color: #000000 !important; /* Force black text for all textareas */
+}
+
+
+/* src/app/globals.css */
+.question-type-label {
+  color: #1f2937 !important; /* Dark gray, almost black */
+  font-weight: 500;
+}
+
+/* Additionally, for all form labels */
+label, 
+.form-label {
+  color: #374151 !important; /* Medium-dark gray */
+}

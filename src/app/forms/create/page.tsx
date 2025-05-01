@@ -234,7 +234,7 @@ export default function CreateForm() {
   return (
     <div className="container mx-auto p-6">
       {/* Modal for question type selection */}
-      <Modal 
+      {/* <Modal 
         isOpen={isTypeSelectorOpen} 
         onClose={() => setIsTypeSelectorOpen(false)}
         title="Add Question"
@@ -249,7 +249,30 @@ export default function CreateForm() {
             Cancel
           </Button>
         </div>
-      </Modal>
+      </Modal> */}
+      <Modal 
+  isOpen={isTypeSelectorOpen} 
+  onClose={() => setIsTypeSelectorOpen(false)}
+  title="Add Question"
+>
+  <FormTypeSelector 
+    onSelect={() => setIsTypeSelectorOpen(false)}
+    onQuestionCreated={(newQuestion) => {
+      // Immediately select the new question
+      setSelectedQuestion(newQuestion);
+      selectedQuestionIdRef.current = newQuestion.id;
+    }}
+  />
+  <div className="mt-4 text-center">
+    <Button
+      variant="outline"
+      className="cursor-pointer"
+      onClick={() => setIsTypeSelectorOpen(false)}
+    >
+      Cancel
+    </Button>
+  </div>
+</Modal>
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-gray-600 text-2xl font-bold">

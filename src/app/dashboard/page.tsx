@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/Badge";
 
 export default function Dashboard() {
   const router = useRouter();
-  // const forms = useFormsStore((state) => state.forms);
   const { 
     forms, 
     isLoading, 
@@ -34,13 +33,6 @@ export default function Dashboard() {
     setFormToDelete(formId);
   };
 
-  // const confirmDelete = () => {
-  //   if (formToDelete) {
-  //     deleteForm(formToDelete);
-  //     clearResponses(formToDelete);
-  //     setFormToDelete(null);
-  //   }
-  // };
 
   const confirmDelete = async () => {
     if (formToDelete) {
@@ -96,7 +88,7 @@ export default function Dashboard() {
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-gray-600 text-2xl font-bold">Forms</h1>
+        <h1 className="text-gray-600 text-2xl font-bold">Simple Form</h1>
         <Link href="/forms/create" passHref>
           <Button leftIcon={<span>+</span>} className="cursor-pointer">Create Form</Button>
         </Link>

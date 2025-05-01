@@ -79,7 +79,7 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
     return true; // Question is valid
   };
 
-  // Load form data from API when component mounts - fixed to avoid infinite calls
+  // Load form data from API when component mounts
   useEffect(() => {
     if (!id) {
       router.push("/dashboard");
@@ -98,28 +98,29 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
     fetchForm();
   }, [id, loadFormById, router]); // Removed currentForm.questions from dependencies
 
-  // Initialize answers when form is loaded - separate effect
+  // Initialize answers when form is loaded
   useEffect(() => {
     if (currentForm.questions && currentForm.questions.length > 0) {
-      // Initialize answers object only if not already initialized
-      const allQuestionsAnswered = currentForm.questions.every(
-        (question) => question.id in answers
-      );
-
-      if (!allQuestionsAnswered) {
-        const initialAnswers: Record<string, any> = {};
-        currentForm.questions.forEach((question) => {
-          initialAnswers[question.id] = null;
-        });
-        setAnswers(initialAnswers);
-
-        // Set first question as selected by default if not already set
-        if (!selectedQuestionId) {
-          setSelectedQuestionId(currentForm.questions[0].id);
-        }
-      }
+      // Initialize answers object
+      const initialAnswers: Record<string, any> = {};
+      currentForm.questions.forEach((question) => {
+        initialAnswers[question.id] = null;
+      });
+      setAnswers(initialAnswers);
     }
-  }, [currentForm.questions, answers, selectedQuestionId]);
+  }, [currentForm.questions]); // Only depends on questions changing
+
+  // Set the first question as selected when form loads
+  useEffect(() => {
+    if (
+      currentForm.questions &&
+      currentForm.questions.length > 0 &&
+      !selectedQuestionId
+    ) {
+      // Set the first question as selected
+      setSelectedQuestionId(currentForm.questions[0].id);
+    }
+  }, [currentForm.questions, selectedQuestionId]);
 
   // Calculate progress whenever answers change
   useEffect(() => {
@@ -316,52 +317,107 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
   const selectedQuestion = getSelectedQuestion();
 
   return (
-    <div className="container mx-auto p-6">
-      <Card className="mb-6">
-        <CardHeader className="p-6 border-b">
-          <div className="flex justify-between items-center">
-            <h1 className="text-gray-600 text-2xl font-bold">
-              {currentForm.title}
-            </h1>
-            <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+    <div className="container mx-auto p-6 flex flex-col min-h-screen">
+      {/* Header Card with Title and Progress */}
+      <Card className="mb-6 shadow-md border-t-4 border-blue-500 shrink-0">
+        <CardHeader className="p-5 border-b">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+            <div>
+              <h1 className="text-gray-800 text-2xl font-bold">
+                {currentForm.title}
+              </h1>
+              {currentForm.description && (
+                <p className="text-gray-600 mt-1">{currentForm.description}</p>
+              )}
+            </div>
+            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-medium shadow-sm border border-green-200 flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
               Response Will Be Saved
             </div>
           </div>
-          {currentForm.description && (
-            <p className="text-gray-600 mt-2">{currentForm.description}</p>
-          )}
         </CardHeader>
 
-        {/* Progress bar */}
-        <div className="px-6 py-2 bg-gray-50">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+        {/* Enhanced Progress bar */}
+        <div className="px-6 py-4 bg-gray-50">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Your progress
+            </span>
+            <span className="text-sm font-bold text-blue-600">
+              {Math.round(currentProgress)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${currentProgress}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>
+          <div className="flex justify-between text-xs text-gray-500 mt-2">
+            <span className="font-medium">
               {
                 Object.values(answers).filter((v) => v !== null && v !== "")
                   .length
               }{" "}
               of {currentForm.questions.length} answered
             </span>
-            <span>{Math.round(currentProgress)}% complete</span>
+            <span>
+              {currentForm.questions.length -
+                Object.values(answers).filter((v) => v !== null && v !== "")
+                  .length}{" "}
+              remaining
+            </span>
           </div>
         </div>
       </Card>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Column 1: Question Navigator */}
-        <div className="col-span-12 lg:col-span-3">
-          <Card className="sticky top-6">
-            <CardHeader className="p-4 border-b">
-              <h2 className="text-gray-600 text-lg font-medium">Questions</h2>
+      {/* Main content grid with improved styling */}
+      <div
+        className="grid grid-cols-12 gap-6 mb-6"
+        style={{ minHeight: "calc(100vh - 220px)" }}
+      >
+        {/* Column 1: Question Navigator - Enhanced */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col">
+          <Card className="h-full flex flex-col overflow-hidden shadow-md">
+            <CardHeader className="p-4 border-b bg-gray-50 shrink-0">
+              <h2 className="text-gray-700 text-lg font-medium flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                Questions
+              </h2>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-[60vh] overflow-y-auto">
+            <CardContent className="p-0 flex-1 overflow-hidden">
+              <div className="h-full overflow-y-auto pb-4">
                 {currentForm.questions.map((question, index) => {
                   const isAnswered =
                     answers[question.id] !== null &&
@@ -373,32 +429,62 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
                       key={question.id}
                       onClick={() => setSelectedQuestionId(question.id)}
                       className={`
-                        p-4 border-b cursor-pointer flex items-center
-                        ${
-                          selectedQuestionId === question.id
-                            ? "bg-blue-50"
-                            : "hover:bg-gray-50"
-                        }
-                        ${hasError ? "bg-red-50 hover:bg-red-50" : ""}
-                      `}
+        p-4 border-b cursor-pointer flex items-center transition-colors duration-200
+        ${
+          selectedQuestionId === question.id
+            ? "bg-blue-50 border-l-4 border-blue-500"
+            : "hover:bg-gray-50 border-l-4 border-transparent"
+        }
+        ${hasError ? "bg-red-50 hover:bg-red-50 border-l-4 border-red-500" : ""}
+        ${isAnswered ? "hover:bg-green-50" : ""}
+      `}
                     >
                       <div
                         className={`
-                        w-6 h-6 rounded-full flex items-center justify-center mr-3 text-sm
-                        ${
-                          isAnswered
-                            ? "bg-green-100 text-green-600"
-                            : "bg-gray-200 text-gray-600"
-                        }
-                        ${hasError ? "bg-red-100 text-red-600" : ""}
-                      `}
+        min-w-[2rem] w-8 h-8 rounded-full flex items-center justify-center mr-3 font-bold shadow-sm text-base shrink-0
+        ${
+          isAnswered
+            ? "bg-green-100 text-green-700 ring-2 ring-green-200"
+            : "bg-gray-100 text-gray-600"
+        }
+        ${hasError ? "bg-red-100 text-red-700 ring-2 ring-red-200" : ""}
+        ${
+          selectedQuestionId === question.id && !isAnswered && !hasError
+            ? "bg-blue-100 text-blue-700 ring-2 ring-blue-200"
+            : ""
+        }
+      `}
                       >
-                        {isAnswered ? "✓" : index + 1}
+                        {isAnswered ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        ) : (
+                          <span className="flex items-center justify-center leading-none">
+                            {index + 1}
+                          </span>
+                        )}
                       </div>
                       <div className="flex-grow overflow-hidden">
                         <div
                           className={`font-medium truncate ${
-                            hasError ? "text-red-600" : "text-gray-600"
+                            hasError
+                              ? "text-red-700"
+                              : isAnswered
+                              ? "text-green-700"
+                              : selectedQuestionId === question.id
+                              ? "text-blue-700"
+                              : "text-gray-700"
                           }`}
                         >
                           {question.title}
@@ -406,64 +492,74 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
                             <span className="text-red-500 ml-1">*</span>
                           )}
                         </div>
-                        {hasError && (
-                          <div className="text-xs text-red-500">
-                            {errors[question.id]}
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
             </CardContent>
-            <CardFooter className="p-4 border-t">
-              <Button
-                onClick={handleSubmit}
-                className="w-full"
-                isDisabled={isResponseLoading}
-              >
-                {isResponseLoading ? "Submitting..." : "Submit Form"}
-              </Button>
-            </CardFooter>
           </Card>
         </div>
 
-        {/* Column 2: Current Question */}
-        <div className="col-span-12 lg:col-span-9">
-          <Card className="sticky top-6">
-            <CardHeader className="p-4 border-b">
-              <h2 className="text-gray-600 text-lg font-medium">
+        {/* Column 2: Current Question - Enhanced with single error message */}
+        <div className="col-span-12 lg:col-span-9 flex flex-col">
+          <Card className="h-full flex flex-col overflow-hidden shadow-md border border-gray-200">
+            <CardHeader className="p-4 border-b bg-gray-50 shrink-0">
+              <h2 className="text-gray-700 text-lg font-medium flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
                 Answer Questions
               </h2>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-6 flex-1 overflow-auto bg-white">
               {selectedQuestion ? (
-                <div className="space-y-4">
-                  <div className="flex items-start mb-4">
-                    <div className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                      {currentForm.questions.findIndex(
-                        (q) => q.id === selectedQuestion.id
-                      ) + 1}
+                <div className="space-y-6 pb-4 w-full">
+                  {" "}
+                  {/* Removed max-w-3xl mx-auto, added w-full */}
+                  <div className="flex items-start mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full">
+                    <div className="min-w-[2.5rem] w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mr-4 font-bold shadow-sm ring-2 ring-blue-200 text-lg shrink-0">
+                      <span className="flex items-center justify-center leading-none">
+                        {currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        ) + 1}
+                      </span>
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-700 text-lg">
+                    <div className="flex-1 w-full">
+                      {" "}
+                      {/* Added flex-1 and w-full */}
+                      <div className="font-semibold text-gray-800 text-lg">
                         {selectedQuestion.title}
                         {selectedQuestion.isRequired && (
-                          <span className="text-red-500 ml-1">*</span>
+                          <span className="text-red-500 ml-1 text-sm">*</span>
                         )}
                       </div>
                       {selectedQuestion.description && (
-                        <div className="text-gray-500 mt-1">
+                        <div className="text-gray-600 mt-1 text-sm">
                           {selectedQuestion.description}
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {renderQuestionInput(selectedQuestion)}
-
-                  <div className="flex justify-between mt-8">
+                  <div className="p-1 w-full">
+                    {" "}
+                    {/* Added w-full */}
+                    {renderQuestionInput(selectedQuestion)}
+                  </div>
+                  <div className="flex justify-between mt-10 pt-4 border-t w-full">
+                    {" "}
+                    {/* Added w-full */}
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -481,27 +577,24 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
                           (q) => q.id === selectedQuestion.id
                         ) === 0 || isResponseLoading
                       }
+                      className="px-6 py-2 flex items-center gap-2 cursor-pointer"
                     >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                      </svg>
                       Previous
                     </Button>
-
-                    {/* <Button
-                      onClick={() => {
-                        const currentIndex = currentForm.questions.findIndex(q => q.id === selectedQuestion.id);
-                        if (currentIndex < currentForm.questions.length - 1) {
-                          setSelectedQuestionId(currentForm.questions[currentIndex + 1].id);
-                        } else {
-                          handleSubmit();
-                        }
-                      }}
-                      isDisabled={isResponseLoading}
-                    >
-                      {isResponseLoading ? 'Processing...' : 
-                        (currentForm.questions.findIndex(q => q.id === selectedQuestion.id) === currentForm.questions.length - 1 
-                          ? 'Submit' 
-                          : 'Next')}
-                    </Button> */}
-
                     <Button
                       onClick={() => {
                         const currentIndex = currentForm.questions.findIndex(
@@ -521,21 +614,106 @@ export default function RespondFormPage({ params }: RespondFormPageProps) {
                         }
                       }}
                       isDisabled={isResponseLoading}
+                      className={`px-6 py-2 flex items-center gap-2 cursor-pointer ${
+                        currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        ) ===
+                        currentForm.questions.length - 1
+                          ? "bg-green-600 hover:bg-green-700"
+                          : ""
+                      }`}
                     >
-                      {isResponseLoading
-                        ? "Processing..."
-                        : currentForm.questions.findIndex(
-                            (q) => q.id === selectedQuestion.id
-                          ) ===
-                          currentForm.questions.length - 1
-                        ? "Submit"
-                        : "Next"}
+                      {isResponseLoading ? (
+                        <>
+                          <svg
+                            className="animate-spin h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : currentForm.questions.findIndex(
+                          (q) => q.id === selectedQuestion.id
+                        ) ===
+                        currentForm.questions.length - 1 ? (
+                        <>
+                          Submit
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M22 2v16h-5.5"></path>
+                            <path d="M2 13.5V22h16v-8.5"></path>
+                            <path d="M18 2 7 13"></path>
+                            <path d="m2 18 5 4 4-5"></path>
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          Next
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="text-center text-gray-500 py-8">
-                  No question selected
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mx-auto mb-4 text-gray-400"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <p className="text-lg font-medium">No question selected</p>
+                  <p className="mt-1">
+                    Please select a question from the list to begin answering
+                  </p>
                 </div>
               )}
             </CardContent>

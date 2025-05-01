@@ -756,23 +756,29 @@ export default function EditFormPage({ params }: any) {
   
   return (
     <div className="container mx-auto p-6">
-      {/* Modal for question type selection */}
-      <Modal 
-        isOpen={isTypeSelectorOpen} 
-        onClose={() => setIsTypeSelectorOpen(false)}
-        title="Add Question"
-      >
-        <FormTypeSelector onSelect={() => setIsTypeSelectorOpen(false)}/>
-        <div className="mt-4 text-center">
-          <Button
-            variant="outline"
-            className="cursor-pointer"
-            onClick={() => setIsTypeSelectorOpen(false)}
-          >
-            Cancel
-          </Button>
-        </div>
-      </Modal>
+<Modal 
+  isOpen={isTypeSelectorOpen} 
+  onClose={() => setIsTypeSelectorOpen(false)}
+  title="Add Question"
+>
+  <FormTypeSelector 
+    onSelect={() => setIsTypeSelectorOpen(false)}
+    onQuestionCreated={(newQuestion) => {
+      // Immediately select the new question
+      setSelectedQuestion(newQuestion);
+      selectedQuestionIdRef.current = newQuestion.id;
+    }}
+  />
+  <div className="mt-4 text-center">
+    <Button
+      variant="outline"
+      className="cursor-pointer"
+      onClick={() => setIsTypeSelectorOpen(false)}
+    >
+      Cancel
+    </Button>
+  </div>
+</Modal>
 
       {/* Warning Modal for Responses */}
       {showWarning && (

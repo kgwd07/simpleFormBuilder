@@ -21,7 +21,7 @@ interface FormBuilderState {
   setFormStatus: (status: FormStatus) => void;
   
   // Question management
-  addQuestion: (type: QuestionType) => void;
+  addQuestion: (type: QuestionType) => Question; // Updated return type
   updateQuestion: (questionId: string, questionData: Partial<Question>) => void;
   removeQuestion: (questionId: string) => void;
   reorderQuestions: (sourceIndex: number, destinationIndex: number) => void;
@@ -81,14 +81,14 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
       }
     })),
   
-  addQuestion: (type) => 
-    set((state) => {
-      const newOrder = state.currentForm.questions.length;
+    addQuestion: (type) => {
+      // First create the question outside of the set function
+      const newOrder = get().currentForm.questions.length;
       
       // Create base question
       const baseQuestion: BaseQuestion = {
-        id: `temp_question_${nanoid()}`, // Will be replaced by MongoDB _id
-        formId: state.currentForm.id,
+        id: `temp_question_${nanoid()}`,
+        formId: get().currentForm.id,
         type,
         title: `Q${newOrder + 1}`,
         description: '',
@@ -96,7 +96,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         order: newOrder,
       };
       
-      // Extend with type-specific properties
+      // Create the specific question type
       let newQuestion: Question;
       
       switch (type) {
@@ -110,44 +110,42 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
           break;
           
         case QuestionType.ShortText:
-          newQuestion = {
-            ...baseQuestion,
-            type: QuestionType.ShortText,
-            placeholder: 'Type your answer here...',
-          };
-          break;
-          
         default:
           newQuestion = {
             ...baseQuestion,
             type: QuestionType.ShortText,
             placeholder: 'Type your answer here...',
           };
+          break;
       }
       
-      return {
+      // Then update the state with the new question
+      set((state) => ({
         currentForm: {
           ...state.currentForm,
           questions: [...state.currentForm.questions, newQuestion],
           updatedAt: new Date(),
         }
-      };
-    }),
+      }));
+      
+      // Return the created question
+      return newQuestion;
+    },
   
-    updateQuestion: (questionId, questionData) => 
-      set((state) => ({
-        currentForm: {
-          ...state.currentForm,
-          questions: state.currentForm.questions.map((q) => {
-            if (q.id === questionId) {
-              // Use type assertion to tell TypeScript this is still a valid Question
-              return { ...q, ...questionData } as Question;
-            }
-            return q;
-          }),
-          updatedAt: new Date(),
-        }
-      })),
+  updateQuestion: (questionId, questionData) => 
+    set((state) => ({
+      currentForm: {
+        ...state.currentForm,
+        questions: state.currentForm.questions.map((q) => {
+          if (q.id === questionId) {
+            // Use type assertion to tell TypeScript this is still a valid Question
+            return { ...q, ...questionData } as Question;
+          }
+          return q;
+        }),
+        updatedAt: new Date(),
+      }
+    })),
     
   removeQuestion: (questionId) => 
     set((state) => {
@@ -320,4 +318,3 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
     }
   },
 }));
-

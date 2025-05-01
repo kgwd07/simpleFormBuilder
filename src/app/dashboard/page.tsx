@@ -164,7 +164,7 @@ export default function Dashboard() {
                   isDisabled={form.status === FormStatus.Draft}
                   onClick={() => router.push(`/forms/respond/${form.id}`)}
                 >
-                  Respond
+                  Survey
                 </Button>
                 <Button
                   variant="ghost"

@@ -11,17 +11,10 @@ import { Badge } from "@/components/ui/Badge";
 
 export default function Dashboard() {
   const router = useRouter();
-  const { 
-    forms, 
-    isLoading, 
-    error, 
-    fetchForms, 
-    deleteForm 
-  } = useFormsStore();
+  const { forms, isLoading, error, fetchForms, deleteForm } = useFormsStore();
   const responses = useFormsStore((state) => state.responses);
   const clearResponses = useFormsStore((state) => state.clearResponses);
   const [formToDelete, setFormToDelete] = useState<string | null>(null);
-
 
   // Fetch forms when component mounts
   useEffect(() => {
@@ -33,7 +26,6 @@ export default function Dashboard() {
     setFormToDelete(formId);
   };
 
-
   const confirmDelete = async () => {
     if (formToDelete) {
       const success = await deleteForm(formToDelete);
@@ -43,15 +35,15 @@ export default function Dashboard() {
     }
   };
 
-   // Show loading state
-   if (isLoading) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="container mx-auto p-6 text-center">
         <p className="text-gray-600">Loading forms...</p>
       </div>
     );
   }
-  
+
   // Show error state
   if (error) {
     return (
@@ -88,9 +80,13 @@ export default function Dashboard() {
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-gray-600 text-2xl font-bold">Simple Form</h1>
+        <Link href="/" passHref className="cursor-pointer">
+          <h1 className="text-gray-600 text-2xl font-bold">Simple Form</h1>
+        </Link>
         <Link href="/forms/create" passHref>
-          <Button leftIcon={<span>+</span>} className="cursor-pointer">Create Form</Button>
+          <Button leftIcon={<span>+</span>} className="cursor-pointer">
+            Create Form
+          </Button>
         </Link>
       </div>
 
@@ -173,7 +169,6 @@ export default function Dashboard() {
                 <Button
                   variant="ghost"
                   size="sm"
-
                   className="text-red-500 cursor-pointer"
                   onClick={() => handleDeleteForm(form.id)}
                 >

@@ -2,7 +2,6 @@ import React from "react";
 import { TextQuestion } from "@/models/forms";
 import { useFormBuilderStore } from "@/store/formBuilderStore";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
 
 interface TextFieldEditorProps {
@@ -27,14 +26,6 @@ export const TextFieldEditor: React.FC<TextFieldEditorProps> = ({
         onChange={(e) => handleChange("title", e.target.value)}
         placeholder="Enter your question here"
       />
-
-      {/* <Textarea
-        id={`question-${question.id}-description`}
-        label="Description (optional)"
-        value={question.description || ''}
-        onChange={(e) => handleChange('description', e.target.value)}
-        placeholder="Add a description to provide more context"
-      /> */}
 
       <Input
         id={`question-${question.id}-description`}

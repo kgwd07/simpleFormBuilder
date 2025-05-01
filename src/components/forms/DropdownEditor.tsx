@@ -41,8 +41,6 @@ export const DropdownEditor: React.FC<DropdownEditorProps> = ({ question }) => {
     setMultiOptionMode(false)
     
   }
-
-  console.log('question',question);
   
 
   return (

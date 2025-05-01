@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { FormTypeSelector } from '@/components/forms/FormTypeSelector';
-import { QuestionCard } from '@/components/forms/QuestionCard';
 import { TextFieldEditor } from '@/components/forms/TextFieldEditor';
 import { DropdownEditor } from '@/components/forms/DropdownEditor';
 import { Modal } from '@/components/ui/Modal';
@@ -22,13 +21,10 @@ export default function CreateForm() {
   const selectedQuestionIdRef = useRef<string | null>(null);
 
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formReset, setFormReset] = useState(false);
   
   const currentForm = useFormBuilderStore((state) => state.currentForm);
   const setFormTitle = useFormBuilderStore((state) => state.setFormTitle);
-  const setFormDescription = useFormBuilderStore((state) => state.setFormDescription);
   const setFormStatus = useFormBuilderStore((state) => state.setFormStatus);
   const resetForm = useFormBuilderStore((state) => state.resetForm);
   const removeQuestion = useFormBuilderStore((state) => state.removeQuestion);
@@ -47,8 +43,6 @@ export default function CreateForm() {
   }, [resetForm]);
 
   const handleSaveForm = async (status: FormStatus) => {
-    setIsSubmitting(true);
-    setError(null);
     
     try {
       setFormStatus(status);
@@ -65,9 +59,9 @@ export default function CreateForm() {
         throw new Error('Failed to save form');
       }
     } catch (err) {
-      setError((err as Error).message);
+      // setError((err as Error).message);
     } finally {
-      setIsSubmitting(false);
+      // setIsSubmitting(false);
     }
   };
 
@@ -356,7 +350,7 @@ export default function CreateForm() {
                           </div>
                         </div>
                         <Button
-                        //@ts-ignore
+                        //@ts-expect-error
                           onClick={(e) => {
                             e.stopPropagation();
                             removeQuestion(question.id);

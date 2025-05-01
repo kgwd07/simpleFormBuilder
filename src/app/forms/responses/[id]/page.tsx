@@ -15,7 +15,7 @@ interface ResponsesPageProps {
 
 export default function ResponsesPage({ params }: ResponsesPageProps) {
   // Use React.use() to unwrap the params Promise
-  // @ts-ignore
+  // @ts-expect-error
   const { id } = React.use(params);
   const router = useRouter();
   

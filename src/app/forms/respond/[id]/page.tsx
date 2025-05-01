@@ -26,9 +26,9 @@ interface RespondFormPageProps {
 export default function RespondFormPage({ params }: RespondFormPageProps) {
   const router = useRouter();
   // Use React.use() to unwrap the params Promise
-  //@ts-ignore
+  //@ts-expect-error
   const unwrappedParams = use(params);
-  //@ts-ignore
+  //@ts-expect-error
   const id = unwrappedParams.id;
 
   // Form data from FormBuilderStore (API-based)

@@ -301,8 +301,16 @@ export default function CreateForm() {
         {/* Column 1: Question List */}
         <div className="col-span-12 lg:col-span-3">
           <Card className="sticky top-6">
-            <CardHeader>
+             <CardHeader className="flex justify-between items-center">
               <h2 className="text-gray-600 text-lg font-medium">Questions</h2>
+              <Button
+                variant="outline"
+                onClick={() => setIsTypeSelectorOpen(true)}
+                className="cursor-pointer"
+                size="sm"
+              >
+                + Add
+              </Button>
             </CardHeader>
             <CardContent className="p-4">
               {currentForm.questions.length === 0 ? (
@@ -370,15 +378,6 @@ export default function CreateForm() {
                   ))}
                 </div>
               )}
-              <div className="mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsTypeSelectorOpen(true)}
-                  className="w-full cursor-pointer"
-                >
-                  + Add Question
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>

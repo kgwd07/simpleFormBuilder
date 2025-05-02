@@ -81,7 +81,7 @@ export default function Dashboard() {
 
       <div className="flex justify-between items-center mb-6">
         <Link href="/" passHref className="cursor-pointer">
-          <h1 className="text-gray-600 text-2xl font-bold">Simple Form</h1>
+          <h1 className="text-gray-600 text-2xl font-bold">Simple Forms</h1>
         </Link>
         <Link href="/forms/create" passHref>
           <Button leftIcon={<span>+</span>} className="cursor-pointer">

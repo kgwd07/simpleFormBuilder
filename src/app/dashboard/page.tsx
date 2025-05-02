@@ -79,7 +79,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="sticky top-0 z-10 bg-white py-4 px-6 border-b flex justify-between items-center mb-6">
         <Link href="/" passHref className="cursor-pointer">
           <h1 className="text-gray-600 text-2xl font-bold">Simple Forms</h1>
         </Link>
